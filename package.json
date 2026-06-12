@@ -12,7 +12,7 @@
     "start": "node dist/server.cjs",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "desktop:build": "electron-builder --win -c.publish=never",
+    "desktop:build": "electron-builder --win -p never",
     "mobile:android:add": "cap add android",
     "mobile:android:sync": "cap sync android",
     "mobile:android:open": "cap open android"
