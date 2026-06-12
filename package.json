@@ -19,21 +19,12 @@
   },
   "build": {
     "appId": "com.duoleveling.covenant",
-    "productName": "DuoLeveling",
+    "productName": "Duo Leveling",
     "directories": {
       "output": "build-desktop"
     },
     "win": {
-      "target": [
-        "nsis",
-        "msi"
-      ]
-    },
-    "msi": {
-      "oneClick": false,
-      "perMachine": true,
-      "shortcutName": "DuoLeveling",
-      "artifactName": "${productName}Setup.${ext}"
+      "target": ["nsis"]
     },
     "files": [
       "dist/**/*",
