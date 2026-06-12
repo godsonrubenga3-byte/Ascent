@@ -1,7 +1,7 @@
 {
   "name": "react-example",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Solo leveling style partner scheduler and discipline system for couples.",
   "author": "Duo Leveling Team",
   "type": "module",
@@ -12,7 +12,7 @@
     "start": "node dist/server.cjs",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "desktop:build": "electron-builder --win",
+    "desktop:build": "electron-builder --win -c.publish=never",
     "mobile:android:add": "cap add android",
     "mobile:android:sync": "cap sync android",
     "mobile:android:open": "cap open android"
