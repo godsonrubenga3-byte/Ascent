@@ -17,7 +17,9 @@ import {
   updatePrayingSession,
   deletePrayingSession,
   shareGroupItem,
-  reinitDB
+  reinitDB,
+  getTursoStats,
+  runCustomQuery
 } from "./server/db.js";
 
 dotenv.config();
@@ -69,6 +71,30 @@ app.post("/api/db/reinit", async (req, res) => {
   } catch (err: any) {
     console.error("Reinit Error:", err);
     res.status(500).json({ error: err.message || "Failed to reinitialize database" });
+  }
+});
+
+// API: Get Turso Database statistics and info
+app.get("/api/turso/stats", async (req, res) => {
+  try {
+    const stats = await getTursoStats();
+    res.json(stats);
+  } catch (err: any) {
+    console.error("Turso Stats Error:", err);
+    res.status(500).json({ error: err.message || "Failed to fetch Turso stats" });
+  }
+});
+
+// API: Execute custom SQL query (Admin Only)
+app.post("/api/turso/query", async (req, res) => {
+  try {
+    const { sql, args } = req.body;
+    if (!sql) return res.status(400).json({ error: "SQL query is required" });
+    const result = await runCustomQuery(sql, args || []);
+    res.json(result);
+  } catch (err: any) {
+    console.error("Turso Query Error:", err);
+    res.status(500).json({ error: err.message || "Failed to execute query" });
   }
 });
 

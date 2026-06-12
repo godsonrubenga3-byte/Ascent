@@ -30,6 +30,7 @@ import DuoStatus, { addExp } from "./components/DuoStatus";
 import SchedulePanel from "./components/SchedulePanel";
 import SkillsImport from "./components/SkillsImport";
 import PrayerTrack from "./components/PrayerTrack";
+import TursoAdmin from "./components/TursoAdmin";
 import { 
   Award, Shield, Calendar, Clock, Sparkles, User, Users, Compass, 
   BookOpen, Smartphone, ShieldCheck, Moon, RefreshCw, LogOut, Trophy, 
@@ -150,6 +151,10 @@ export default function App() {
     setCurrentUser(null);
   };
 
+  // --- SPECIAL ROUTE: TURSO ADMIN ---
+  if (window.location.pathname === "/turso") {
+    return <TursoAdmin />;
+  }
 
   // --- 3. Dynamic real-time listeners (The ultimate multi-device syncing engine) ---
   useEffect(() => {

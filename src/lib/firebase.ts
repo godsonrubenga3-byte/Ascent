@@ -141,9 +141,20 @@ export function triggerSyncNotification() {
 // Global active sync routine
 let syncInterval: any = null;
 
+// Example: "https://duo-ascent.vercel.app"
+const BASE_URL = "https://duo-ascent.vercel.app";
+
+function getUrl(path: string) {
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  // Check if we are running in Capacitor (localhost) or dev
+  const isCapacitor = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.protocol === "file:");
+  const base = isCapacitor ? BASE_URL : origin;
+  return `${base}${path}`;
+}
+
 export async function pullDatabaseSync(groupId: string) {
   try {
-    const res = await fetch(`/api/groups/${groupId}/sync`);
+    const res = await fetch(getUrl(`/api/groups/${groupId}/sync`));
     if (res.ok) {
       activeGroupState = await res.json();
       triggerSyncNotification();
@@ -237,7 +248,7 @@ export async function addDoc(colRef: CollectionRef, data: any) {
 
   // A. SKILLS ADD
   if (p.endsWith("/skills")) {
-    const res = await fetch("/api/skills", {
+    const res = await fetch(getUrl("/api/skills"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -253,7 +264,7 @@ export async function addDoc(colRef: CollectionRef, data: any) {
   }
   // B. DAILY QUESTS ADD
   else if (p.endsWith("/scheduleItems")) {
-    const res = await fetch("/api/schedule", {
+    const res = await fetch(getUrl("/api/schedule"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -270,7 +281,7 @@ export async function addDoc(colRef: CollectionRef, data: any) {
   }
   // C. DEVOTION TRACKS ADD
   else if (p.endsWith("/prayingSessions")) {
-    const res = await fetch("/api/prayers", {
+    const res = await fetch(getUrl("/api/prayers"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -305,7 +316,7 @@ export async function updateDoc(docRef: DocRef, data: any) {
 
   // A. USER STATS (e.g. stats multipliers or phone lock rewards)
   if (colPath === "users") {
-    await fetch("/api/users/update", {
+    await fetch(getUrl("/api/users/update"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -321,7 +332,7 @@ export async function updateDoc(docRef: DocRef, data: any) {
   // B. COVENANT BOARD SHARING
   else if (colPath === "couples") {
     if (data.verseOfTheDayShared) {
-      await fetch("/api/groups/share", {
+      await fetch(getUrl("/api/groups/share"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -331,7 +342,7 @@ export async function updateDoc(docRef: DocRef, data: any) {
         }),
       });
     } else if (data.motivationQuoteShared) {
-      await fetch("/api/groups/share", {
+      await fetch(getUrl("/api/groups/share"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -344,7 +355,7 @@ export async function updateDoc(docRef: DocRef, data: any) {
   }
   // C. SPECIALTY HUB LEVELS EXP
   else if (segs[2] === "skills") {
-    await fetch("/api/skills/update", {
+    await fetch(getUrl("/api/skills/update"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -356,7 +367,7 @@ export async function updateDoc(docRef: DocRef, data: any) {
   }
   // D. DAILY QUEST LOGS PROGRESS
   else if (segs[2] === "scheduleItems") {
-    await fetch("/api/schedule/update", {
+    await fetch(getUrl("/api/schedule/update"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -370,7 +381,7 @@ export async function updateDoc(docRef: DocRef, data: any) {
   }
   // E. DEVOTIONS LOGS STATUS
   else if (segs[2] === "prayingSessions") {
-    await fetch("/api/prayers/update", {
+    await fetch(getUrl("/api/prayers/update"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -392,11 +403,11 @@ export async function deleteDoc(docRef: DocRef) {
   const itemId = docRef.docId;
 
   if (segs[2] === "skills") {
-    await fetch(`/api/skills/${itemId}`, { method: "DELETE" });
+    await fetch(getUrl(`/api/skills/${itemId}`), { method: "DELETE" });
   } else if (segs[2] === "scheduleItems") {
-    await fetch(`/api/schedule/${itemId}`, { method: "DELETE" });
+    await fetch(getUrl(`/api/schedule/${itemId}`), { method: "DELETE" });
   } else if (segs[2] === "prayingSessions") {
-    await fetch(`/api/prayers/${itemId}`, { method: "DELETE" });
+    await fetch(getUrl(`/api/prayers/${itemId}`), { method: "DELETE" });
   }
 
   if (activeGroupState?.group?.id) {

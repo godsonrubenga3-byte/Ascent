@@ -563,3 +563,49 @@ export async function deletePrayingSession(sessionId: string) {
     args: [sessionId]
   });
 }
+
+// Turso Stats / Admin logic
+export async function getTursoStats() {
+  try {
+    // 1. Get all user tables
+    const tablesRes = await dbClient.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
+    const tableNames = tablesRes.rows.map(r => r.name as string);
+    
+    const tableStats = [];
+    for (const name of tableNames) {
+      const countRes = await dbClient.execute(`SELECT COUNT(*) as count FROM ${name}`);
+      tableStats.push({ 
+        name, 
+        count: Number(countRes.rows[0].count) 
+      });
+    }
+
+    // 2. Get some basic DB info
+    const versionRes = await dbClient.execute("SELECT sqlite_version() as version");
+
+    return {
+      connectionUrl: (process.env.TURSO_CONNECTION_URL || "file:local.db").replace(/\?.*$/, ""), // Strip query params for safety
+      version: versionRes.rows[0].version,
+      tables: tableStats,
+      timestamp: new Date().toISOString()
+    };
+  } catch (err) {
+    console.error("[Database] Stats fetch failed:", err);
+    throw err;
+  }
+}
+
+export async function runCustomQuery(sql: string, args: any[] = []) {
+  try {
+    const res = await dbClient.execute({ sql, args });
+    return {
+      columns: res.columns,
+      rows: res.rows,
+      rowsAffected: res.rowsAffected,
+      lastInsertRowid: res.lastInsertRowid?.toString()
+    };
+  } catch (err: any) {
+    console.error("[Database] Custom query failed:", err);
+    throw new Error(err.message);
+  }
+}
