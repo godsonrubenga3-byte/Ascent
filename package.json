@@ -1,7 +1,9 @@
 {
   "name": "react-example",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "description": "Solo leveling style partner scheduler and discipline system for couples.",
+  "author": "Duo Leveling Team",
   "type": "module",
   "main": "main.js",
   "scripts": {
@@ -17,7 +19,7 @@
   },
   "build": {
     "appId": "com.duoleveling.covenant",
-    "productName": "Duo Leveling",
+    "productName": "DuoLeveling",
     "directories": {
       "output": "build-desktop"
     },
@@ -26,6 +28,10 @@
         "nsis",
         "msi"
       ]
+    },
+    "msi": {
+      "oneClick": true,
+      "perMachine": true
     },
     "files": [
       "dist/**/*",
