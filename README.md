@@ -1,20 +1,19 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Duo Leveling
 
-# Run and deploy your AI Studio app
+Solo leveling style partner scheduler, skill tracking, daily motivation tracker, and discipline system for couples.
 
-This contains everything you need to run your app locally.
+## Getting Started
 
-View your app in AI Studio: https://ai.studio/apps/1b444e6b-241d-4a0d-9a09-ea98e1c85550
-
-## Run Locally
-
-**Prerequisites:**  Node.js
-
+**Prerequisites:** Node.js
 
 1. Install dependencies:
    `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+2. Set your environment variables in `.env.local`
 3. Run the app:
    `npm run dev`
+
+## Desktop & Mobile
+
+Builds are managed via GitHub Actions.
+- Windows: `npm run desktop:build`
+- Android: `npm run mobile:android:sync`

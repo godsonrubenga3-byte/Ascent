@@ -33,11 +33,20 @@ export interface GroupState {
   skills: any[];
   scheduleItems: any[];
   prayingSessions: any[];
-  chatMessages: any[];
+}
+
+// For Desktop/Mobile production, replace this with your actual Vercel deployment URL
+// Example: "https://duo-leveling.vercel.app"
+const BASE_URL = ""; 
+
+function getUrl(path: string) {
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const base = BASE_URL || origin;
+  return `${base}${path}`;
 }
 
 export async function apiLogin(groupName: string, role: "partner1" | "partner2", partnerName: string): Promise<GroupState> {
-  const response = await fetch("/api/groups/login", {
+  const response = await fetch(getUrl("/api/groups/login"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ groupName, role, partnerName }),
@@ -50,7 +59,7 @@ export async function apiLogin(groupName: string, role: "partner1" | "partner2",
 }
 
 export async function apiSync(groupId: string): Promise<GroupState> {
-  const response = await fetch(`/api/groups/${groupId}/sync`);
+  const response = await fetch(getUrl(`/api/groups/${groupId}/sync`));
   if (!response.ok) {
     const err = await response.json();
     throw new Error(err.error || "Synchronization failing");
@@ -66,7 +75,7 @@ export async function apiUpdateUser(
   phoneMinutesToday: number,
   phoneDisciplineBonus: number
 ): Promise<void> {
-  await fetch("/api/users/update", {
+  await fetch(getUrl("/api/users/update"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -81,7 +90,7 @@ export async function apiUpdateUser(
 }
 
 export async function apiAddSkill(userId: string, name: string, category: string, level = 1, exp = 0): Promise<string> {
-  const response = await fetch("/api/skills", {
+  const response = await fetch(getUrl("/api/skills"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId, name, category, level, exp }),
@@ -91,7 +100,7 @@ export async function apiAddSkill(userId: string, name: string, category: string
 }
 
 export async function apiUpdateSkill(skillId: string, level: number, exp: number): Promise<void> {
-  await fetch("/api/skills/update", {
+  await fetch(getUrl("/api/skills/update"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ skillId, level, exp }),
@@ -99,7 +108,7 @@ export async function apiUpdateSkill(skillId: string, level: number, exp: number
 }
 
 export async function apiDeleteSkill(skillId: string): Promise<void> {
-  await fetch(`/api/skills/${skillId}`, { method: "DELETE" });
+  await fetch(getUrl(`/api/skills/${skillId}`), { method: "DELETE" });
 }
 
 export async function apiAddScheduleItem(
@@ -110,7 +119,7 @@ export async function apiAddScheduleItem(
   endTime: string,
   date: string
 ): Promise<string> {
-  const response = await fetch("/api/schedule", {
+  const response = await fetch(getUrl("/api/schedule"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId, title, category, startTime, endTime, date }),
@@ -126,7 +135,7 @@ export async function apiUpdateScheduleItem(
   adjustedStartTime?: string,
   adjustedEndTime?: string
 ): Promise<void> {
-  await fetch("/api/schedule/update", {
+  await fetch(getUrl("/api/schedule/update"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ itemId, status, isAdjusted, adjustedStartTime, adjustedEndTime }),
@@ -134,7 +143,7 @@ export async function apiUpdateScheduleItem(
 }
 
 export async function apiDeleteScheduleItem(itemId: string): Promise<void> {
-  await fetch(`/api/schedule/${itemId}`, { method: "DELETE" });
+  await fetch(getUrl(`/api/schedule/${itemId}`), { method: "DELETE" });
 }
 
 export async function apiAddPrayingSession(
@@ -145,7 +154,7 @@ export async function apiAddPrayingSession(
   date: string,
   notes?: string
 ): Promise<string> {
-  const response = await fetch("/api/prayers", {
+  const response = await fetch(getUrl("/api/prayers"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId, title, type, status, date, notes }),
@@ -155,7 +164,7 @@ export async function apiAddPrayingSession(
 }
 
 export async function apiUpdatePrayingSession(sessionId: string, status: string, notes?: string): Promise<void> {
-  await fetch("/api/prayers/update", {
+  await fetch(getUrl("/api/prayers/update"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ sessionId, status, notes }),
@@ -163,20 +172,5 @@ export async function apiUpdatePrayingSession(sessionId: string, status: string,
 }
 
 export async function apiDeletePrayingSession(sessionId: string): Promise<void> {
-  await fetch(`/api/prayers/${sessionId}`, { method: "DELETE" });
-}
-
-export async function apiSendChatMessage(
-  message: string,
-  history: any[],
-  sinType: string,
-  userId: string
-): Promise<string> {
-  const response = await fetch("/api/assistant/chat", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message, history, sinType, userId }),
-  });
-  const data = await response.json();
-  return data.reply;
+  await fetch(getUrl(`/api/prayers/${sessionId}`), { method: "DELETE" });
 }

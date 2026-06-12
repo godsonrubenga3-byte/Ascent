@@ -100,18 +100,6 @@ export async function initDB() {
       )
     `);
 
-    // 6. AI Mentor chat messages
-    await dbClient.execute(`
-      CREATE TABLE IF NOT EXISTS chat_messages (
-        id TEXT PRIMARY KEY,
-        user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        role TEXT NOT NULL,
-        content TEXT NOT NULL,
-        sin_type TEXT NOT NULL,
-        created_at TEXT NOT NULL
-      )
-    `);
-
     console.log("[Database] Schema successfully verified/created!");
   } catch (err) {
     console.error("[Database] Initialization Failed:", err);
@@ -122,7 +110,6 @@ export async function initDB() {
 export async function reinitDB() {
   try {
     console.log("[Database] Performing clean database re-initialization...");
-    await dbClient.execute("DROP TABLE IF EXISTS chat_messages");
     await dbClient.execute("DROP TABLE IF EXISTS praying_sessions");
     await dbClient.execute("DROP TABLE IF EXISTS schedule_items");
     await dbClient.execute("DROP TABLE IF EXISTS skills");
@@ -170,19 +157,6 @@ async function seedDefaultData(groupId: string, p1Id: string, p2Id: string) {
         (?, ?, 'Public Speaking Mastery', 'income', 3, 10, 1),
         (?, ?, 'Graphic Designing Artistry', 'income', 2, 60, 1)`,
       args: [generateId("SK-"), p2Id, generateId("SK-"), p2Id]
-    });
-
-    // 2. Welcome Settle-Mind Chat Message
-    await dbClient.execute({
-      sql: `INSERT INTO chat_messages (id, user_id, role, content, sin_type, created_at) VALUES 
-        (?, ?, 'model', 'Welcome back to the Covenant Leveling System, Co-Sovereign. I am your Saint Companion. Share any current struggles—whether Lust, Anger, or Pride—and we will solve them together to maintain your duo sync.', 'general', ?)`,
-      args: [generateId("MSG-"), p1Id, new Date().toISOString()]
-    });
-
-    await dbClient.execute({
-      sql: `INSERT INTO chat_messages (id, user_id, role, content, sin_type, created_at) VALUES 
-        (?, ?, 'model', 'Welcome back to the Covenant Leveling System, Co-Sovereign. I am your Saint Companion. Share any current struggles—whether Lust, Anger, or Pride—and we will solve them together to maintain your duo sync.', 'general', ?)`,
-      args: [generateId("MSG-"), p2Id, new Date().toISOString()]
     });
 
     const today = new Date().toISOString().split("T")[0];
@@ -427,16 +401,6 @@ export async function getFullGroupState(groupId: string) {
   });
   const prayingSessions = prayersRes.rows.map(sanitizeRow);
 
-  // 6. Chats (Only return messages for both, tagged by userId so client knows whose chat list)
-  const chatsRes = await dbClient.execute({
-    sql: `SELECT c.* FROM chat_messages c 
-          JOIN users u ON c.user_id = u.id 
-          WHERE u.group_id = ? 
-          ORDER BY c.created_at ASC`,
-    args: [groupId]
-  });
-  const chatMessages = chatsRes.rows.map(sanitizeRow);
-
   return {
     group,
     partner1,
@@ -444,7 +408,6 @@ export async function getFullGroupState(groupId: string) {
     skills,
     scheduleItems,
     prayingSessions,
-    chatMessages,
   };
 }
 
@@ -480,10 +443,17 @@ export async function shareGroupItem(
 
 // Core Entity Updates
 export async function updateUserStats(userId: string, level: number, exp: number, score: number, minutes: number, bonus: number) {
+  // Defensive casting to ensure LibSQL doesn't receive undefined/null for numeric fields
+  const safeLevel = Number(level ?? 1);
+  const safeExp = Number(exp ?? 0);
+  const safeScore = Number(score ?? 100);
+  const safeMinutes = Number(minutes ?? 0);
+  const safeBonus = Number(bonus ?? 0);
+
   await dbClient.execute({
     sql: `UPDATE users SET level = ?, exp = ?, discipline_score = ?, phone_minutes_today = ?, phone_discipline_bonus = ?, last_active_at = ? 
           WHERE id = ?`,
-    args: [level, exp, score, minutes, bonus, new Date().toISOString(), userId]
+    args: [safeLevel, safeExp, safeScore, safeMinutes, safeBonus, new Date().toISOString(), userId]
   });
 
   // Calculate and update shared Group level / experience safely
@@ -592,15 +562,4 @@ export async function deletePrayingSession(sessionId: string) {
     sql: "DELETE FROM praying_sessions WHERE id = ?",
     args: [sessionId]
   });
-}
-
-// Chat Messages Logic
-export async function addChatMessage(userId: string, role: string, content: string, sinType: string) {
-  const mId = generateId("MSG-");
-  await dbClient.execute({
-    sql: `INSERT INTO chat_messages (id, user_id, role, content, sin_type, created_at) 
-          VALUES (?, ?, ?, ?, ?, ?)`,
-    args: [mId, userId, role, content, sinType, new Date().toISOString()]
-  });
-  return mId;
 }

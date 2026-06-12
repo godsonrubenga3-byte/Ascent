@@ -134,25 +134,9 @@ export function triggerSyncNotification() {
           forEach: (fn: any) => docs.forEach(fn),
         });
       }
-      // matches "users/userId/chatMessages"
-      else if (p.endsWith("/chatMessages")) {
-        const uId = p.split("/")[1];
-        const docs = state.chatMessages
-          .filter((s: any) => s.user_id === uId)
-          .map((s: any) => ({
-            id: s.id,
-            data: () => s,
-            ...s,
-          }));
-        listener.callback({
-          docs,
-          empty: docs.length === 0,
-          forEach: (fn: any) => docs.forEach(fn),
-        });
-      }
     }
   }
-}
+};
 
 // Global active sync routine
 let syncInterval: any = null;
@@ -300,23 +284,6 @@ export async function addDoc(colRef: CollectionRef, data: any) {
     });
     const parsed = await res.json();
     newId = parsed.id;
-  }
-  // D. CHAT SYSTEM SENT FROM SIN SECTORS
-  else if (p.endsWith("/chatMessages")) {
-    // Component calls addDoc on chat messages to log user text
-    // The server handles calling Gemini and auto-saves the response in SQLite
-    const res = await fetch("/api/assistant/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userId: uId,
-        message: data.content,
-        sinType: data.sinType || "general",
-        // Pass current messages list for historic flow
-        history: activeGroupState?.chatMessages?.filter((m: any) => m.user_id === uId) || [],
-      }),
-    });
-    await res.json();
   }
 
   // Pull updates immediately following mutation

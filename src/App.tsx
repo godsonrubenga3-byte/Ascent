@@ -25,11 +25,10 @@ import {
   onSnapshot,
   updateDoc,
 } from "./lib/firebase";
-import { UserProfile, Couple, Skill, ScheduleItem, PrayingSession, ChatMessage, DailyInspiration } from "./types";
+import { UserProfile, Couple, Skill, ScheduleItem, PrayingSession, DailyInspiration } from "./types";
 import DuoStatus, { addExp } from "./components/DuoStatus";
 import SchedulePanel from "./components/SchedulePanel";
 import SkillsImport from "./components/SkillsImport";
-import SettleMindChat from "./components/SettleMindChat";
 import PrayerTrack from "./components/PrayerTrack";
 import { 
   Award, Shield, Calendar, Clock, Sparkles, User, Users, Compass, 
@@ -51,7 +50,6 @@ export default function App() {
   const [mySkills, setMySkills] = useState<Skill[]>([]);
   const [myScheduleItems, setMyScheduleItems] = useState<ScheduleItem[]>([]);
   const [myPrayingSessions, setMyPrayingSessions] = useState<PrayingSession[]>([]);
-  const [myChatMessages, setMyChatMessages] = useState<ChatMessage[]>([]);
 
   // Partner checklist lists (real-time sync!)
   const [partnerSkills, setPartnerSkills] = useState<Skill[]>([]);
@@ -59,7 +57,7 @@ export default function App() {
   const [partnerPrayingSessions, setPartnerPrayingSessions] = useState<PrayingSession[]>([]);
 
   // System general state variables
-  const [activeTab, setActiveTab] = useState<"status" | "schedule" | "skills" | "prayers" | "chat">("status");
+  const [activeTab, setActiveTab] = useState<"status" | "schedule" | "skills" | "prayers">("status");
   const [scheduleActiveSubtab, setScheduleActiveSubtab] = useState<"mine" | "partner">("mine");
   const [skillsActiveSubtab, setSkillsActiveSubtab] = useState<"mine" | "partner">("mine");
   const [coupleCodeInput, setCoupleCodeInput] = useState("");
@@ -177,16 +175,11 @@ export default function App() {
       setMyPrayingSessions(snap.docs.map(d => ({ id: d.id, ...d.data() })) as PrayingSession[]);
     });
 
-    const unsubChats = onSnapshot(collection(db, "users", currentUser.uid, "chatMessages"), (snap) => {
-      setMyChatMessages(snap.docs.map(d => ({ id: d.id, ...d.data() })) as ChatMessage[]);
-    });
-
     return () => {
       unsubProfile();
       unsubSkills();
       unsubSchedule();
       unsubPrayers();
-      unsubChats();
     };
   }, [currentUser]);
 
@@ -859,7 +852,6 @@ export default function App() {
               { id: "schedule", label: "DAILY QUESTS", icon: <Calendar className="h-4 w-4" /> },
               { id: "skills", label: "SPECIALTY HUB", icon: <Award className="h-4 w-4" /> },
               { id: "prayers", label: "DEVOTION MATRIX", icon: <Cross className="h-4 w-4 text-emerald-400" /> },
-              { id: "chat", label: "TEMPTATION WARDEN", icon: <Compass className="h-4 w-4" /> },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -962,13 +954,6 @@ export default function App() {
                 prayingSessions={myPrayingSessions}
                 partnerPrayingSessions={partnerPrayingSessions}
                 partnerProfile={partnerProfile}
-              />
-            )}
-
-            {activeTab === "chat" && userProfile && (
-              <SettleMindChat
-                userProfile={userProfile}
-                chatMessages={myChatMessages}
               />
             )}
           </div>

@@ -1,0 +1,48 @@
+# Duo Leveling Covenant System - Desktop Packaging Workflow
+# Builds production-ready Windows installer executables (.exe) and Microsoft installers (.msi)
+
+name: Build Desktop Program (EXE & MSI)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install Application Dependencies
+        run: |
+          npm ci || npm install
+
+      - name: Compile Application Assets
+        run: |
+          npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Package Desktop Executables
+        run: |
+          npm run desktop:build
+
+      - name: Archive Windows Installers (EXE & MSI)
+        uses: actions/upload-artifact@v4
+        with:
+          name: duo-leveling-windows-packages
+          path: |
+            build-desktop/*.exe
+            build-desktop/*.msi
+          if-no-files-found: error

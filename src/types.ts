@@ -70,14 +70,6 @@ export interface PrayingSession {
   completedAt?: string;
 }
 
-export interface ChatMessage {
-  id: string;
-  role: "user" | "model";
-  content: string;
-  sinType: "lust" | "anger" | "pride" | "general";
-  createdAt: string;
-}
-
 export interface DailyInspiration {
   verse: string;
   reference: string;
