@@ -1,0 +1,6 @@
+{
+  "name": "Duo Leveling",
+  "description": "Solo leveling style partner scheduler, skill tracking, daily motivation tracker, and discipline system for couples.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
