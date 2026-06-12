@@ -1,6 +1,7 @@
 import express from "express";
 import path from "path";
 import dotenv from "dotenv";
+import cors from "cors";
 import {
   initDB,
   loginOrRegisterGroup,
@@ -24,6 +25,7 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
+app.use(cors());
 app.use(express.json());
 
 // Middleware to ensure DB is initialized
