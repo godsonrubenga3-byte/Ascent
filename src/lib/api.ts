@@ -37,7 +37,7 @@ export interface GroupState {
 
 // For Desktop/Mobile production, replace this with your actual Vercel deployment URL
 // Example: "https://duo-leveling.vercel.app"
-const BASE_URL = ""; 
+const BASE_URL = "https://duo-ascent.vercel.app"; 
 
 function getUrl(path: string) {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
