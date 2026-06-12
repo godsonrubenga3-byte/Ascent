@@ -17,7 +17,7 @@ import {
   deletePrayingSession,
   shareGroupItem,
   reinitDB
-} from "./server/db";
+} from "./server/db.js";
 
 dotenv.config();
 
