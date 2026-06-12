@@ -78,6 +78,7 @@ export default function App() {
   // Group/Covenant login form states
   const [loginGroupName, setLoginGroupName] = useState("");
   const [loginPartnerName, setLoginPartnerName] = useState("");
+  const [landingActiveTab, setLandingActiveTab] = useState<"concept" | "modules" | "start">("concept");
 
   const handleReinitDatabase = async () => {
     if (!window.confirm("Are you sure you want to completely re-initialize the database from scratch? This clears all existing player data, groups, schedules, and private logs.")) {
@@ -401,103 +402,243 @@ export default function App() {
     );
   }
 
-  // --- RENDERING AUTHENTICATION PANELS ---
+  // --- RENDERING AUTHENTICATION PANELS & SYSTEM INTRO LANDING PAGE ---
   if (!currentUser) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center px-4 font-sans relative overflow-hidden py-10">
+      <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center px-4 md:px-8 font-sans relative overflow-hidden py-12">
         {/* Aesthetic background glows */}
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-500/[0.04] blur-3xl rounded-full animate-pulse" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-500/[0.04] blur-3xl rounded-full" />
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-cyan-500/[0.04] blur-3xl rounded-full animate-pulse pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-indigo-500/[0.04] blur-3xl rounded-full pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[300px] bg-blue-500/[0.02] blur-[140px] rounded-full pointer-events-none" />
 
-        <div className="w-full max-w-md bg-slate-900/85 border border-slate-800/90 p-8 rounded-3xl shadow-2xl backdrop-blur-md flex flex-col space-y-6 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500" />
+        <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
           
-          <div className="text-center space-y-2">
-            <div className="mx-auto w-12 h-12 bg-cyan-950/50 border border-cyan-500/40 rounded-2xl flex items-center justify-center shadow-lg shadow-cyan-950/40">
-              <Sparkles className="h-6 w-6 text-cyan-400" />
+          {/* LEFT COLUMN: THE SYSTEM COVENANT MANUAL & GAMEPLAY INTRO */}
+          <div className="lg:col-span-7 flex flex-col space-y-6 text-left">
+            <div className="inline-flex items-center space-x-2 px-3 py-1 bg-cyan-950/40 border border-cyan-500/30 rounded-full w-fit">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+              <span className="text-[10px] font-mono font-bold tracking-widest text-cyan-400 uppercase">
+                COVENANT SYSTEM ENGAGEMENT MANUAL
+              </span>
             </div>
-            <h1 className="text-2xl font-black text-slate-100 uppercase tracking-wider font-sans bg-gradient-to-r from-cyan-400 to-blue-300 bg-clip-text text-transparent">
-              Duo Leveling
-            </h1>
-            <p className="text-xs text-slate-400 font-medium">
-              Real-time Relational Database Covenant Sync Engine. Join the same group username to co-level with your partner.
-            </p>
-          </div>
 
-          <form onSubmit={handleGroupLoginSubmit} className="space-y-4">
-            {/* Group Code Word */}
-            <div>
-              <label className="block text-[10px] font-mono font-bold tracking-wider text-cyan-400 uppercase mb-1.5">
-                Covenant Group Code (Shared)
-              </label>
-              <div className="relative">
-                <Users className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
-                <input
-                  type="text"
-                  placeholder="e.g. covenantteam"
-                  value={loginGroupName}
-                  onChange={(e) => setLoginGroupName(e.target.value)}
-                  className="w-full bg-slate-950/80 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-100 font-sans focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/30 font-medium"
-                  required
-                />
-              </div>
-              <p className="text-[10px] text-slate-500 mt-1 font-sans">
-                Enter the exact same Group Code to sync real-time with your partner.
+            <div className="space-y-4">
+              <h1 className="text-4xl md:text-5xl font-black text-slate-100 uppercase tracking-tight font-display leading-[1.05]">
+                Conquer Daily Tasks <br/>
+                <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">
+                  As Leveling Partners
+                </span>
+              </h1>
+              <p className="text-sm md:text-base text-slate-400 leading-relaxed font-sans max-w-xl">
+                Welcome to <strong className="text-slate-200">Duo Leveling</strong>, a gamified solo-leveling style discipline matrix built exclusively for partners, roommates, and couples to sync, track, and master habits together in real-time.
               </p>
             </div>
 
-            {/* Partner Character Name */}
-            <div>
-              <label className="block text-[10px] font-mono font-bold tracking-wider text-cyan-400 uppercase mb-1.5">
-                Your Player Username inside Covenant
-              </label>
-              <div className="relative">
-                <Key className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
-                <input
-                  type="text"
-                  placeholder="e.g. Arthur, Gwen"
-                  value={loginPartnerName}
-                  onChange={(e) => setLoginPartnerName(e.target.value)}
-                  className="w-full bg-slate-950/80 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-100 font-sans focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/30 font-medium"
-                  required
-                />
-              </div>
-              <p className="text-[10px] text-slate-500 mt-1 font-sans">
-                Your partner role avatar will be determined automatically.
-              </p>
+            {/* Interactive Tab pills for the onboarding guide */}
+            <div className="flex border-b border-slate-900 pb-px space-x-4 max-w-md">
+              {[
+                { id: "concept", label: "🔥 Core Concept" },
+                { id: "modules", label: "📊 System Modules" },
+                { id: "start", label: "🚀 Getting Started" }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setLandingActiveTab(tab.id as any)}
+                  className={`pb-2.5 text-xs font-mono font-bold tracking-wider uppercase border-b-2 transition relative cursor-pointer ${
+                    landingActiveTab === tab.id
+                      ? "border-cyan-400 text-cyan-400 font-extrabold"
+                      : "border-transparent text-slate-500 hover:text-slate-300"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
             </div>
 
-            {/* Error alerts */}
-            {authError && (
-              <div className="p-3 bg-red-950/30 border border-red-500/25 rounded-xl text-left">
-                <span className="text-[9px] font-mono text-rose-400 font-bold uppercase tracking-wider block mb-1">⚠️ Connection Refused</span>
-                <p className="text-xs text-rose-300 leading-normal">{authError}</p>
-              </div>
-            )}
+            {/* TAB PORTALS */}
+            <AnimatePresence mode="wait">
+              {landingActiveTab === "concept" && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="space-y-4 max-w-xl"
+                >
+                  <div className="bg-slate-900/40 border border-slate-800/60 p-5 rounded-2xl space-y-3">
+                    <h3 className="text-sm font-mono font-bold uppercase text-slate-200 flex items-center space-x-1.5">
+                      <Zap className="h-4 w-4 text-cyan-400" />
+                      <span>THE SOLO LEVELING RULEBOOK</span>
+                    </h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Duo Leveling takes inspiration from legendary game HUDs to transform life's daily frictions into leveling indicators. No more unacknowledged home chores, forgot-to-pray session schedules, or phone-screen doomscrolling waste.
+                    </p>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Every completed deed, focus block, and skill training returns <strong className="text-cyan-400 font-semibold font-mono">EXP points</strong>. As you and your partner acquire EXP, both of your individual levels climb, which in turn fuels your shared <strong className="text-indigo-400 font-semibold font-mono">Duo Covenant Level</strong>.
+                    </p>
+                  </div>
+                </motion.div>
+              )}
 
-            {/* Submit button */}
-            <button
-              type="submit"
-              disabled={loadingUnionAction === "login"}
-              className="w-full py-3 bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 disabled:opacity-50 text-slate-100 font-bold text-sm rounded-xl flex items-center justify-center space-x-2 transition shadow-lg shadow-indigo-950/30 cursor-pointer"
-            >
-              <Zap className="h-4 w-4" />
-              <span>{loadingUnionAction === "login" ? "LINKING COVENANT..." : "INITIATE DUO QUEST LINK"}</span>
-            </button>
-          </form>
+              {landingActiveTab === "modules" && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-xl"
+                >
+                  {[
+                    {
+                      icon: <Calendar className="h-4 w-4 text-cyan-400" />,
+                      title: "Daily Quests",
+                      desc: "Establish a list of routines. Check them off in real-time to gain stats and EXP together."
+                    },
+                    {
+                      icon: <Award className="h-4 w-4 text-indigo-400" />,
+                      title: "Specialty Hub",
+                      desc: "Acquire & level-up custom vocational specialties like high-income tech skills or physical metrics."
+                    },
+                    {
+                      icon: <Cross className="h-4 w-4 text-emerald-400" />,
+                      title: "Devotion Matrix",
+                      desc: "Synchronize daily reflections, prayer requests, or moments of silence side-by-side."
+                    },
+                    {
+                      icon: <Lock className="h-4 w-4 text-amber-400" />,
+                      title: "Phone Lock Ward",
+                      desc: "Lock down your attention state with focus timers. Gaining +1 EXP for every minute of screen restriction."
+                    },
+                  ].map((feat, idx) => (
+                    <div key={idx} className="bg-slate-900/40 border border-slate-800/80 p-3.5 rounded-xl space-y-1.5">
+                      <div className="flex items-center space-x-2">
+                        {feat.icon}
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200">{feat.title}</h4>
+                      </div>
+                      <p className="text-[11px] text-slate-400 leading-normal">{feat.desc}</p>
+                    </div>
+                  ))}
+                </motion.div>
+              )}
 
-          <div className="flex flex-col items-center space-y-2 pt-2 border-t border-slate-800/40">
-            <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">
-              Duo Leveling Covenant System
-            </span>
-            <button
-              type="button"
-              onClick={handleReinitDatabase}
-              className="text-[9px] font-mono text-slate-600 hover:text-cyan-400 font-bold uppercase tracking-wider transition underline decoration-slate-800 hover:decoration-cyan-500 cursor-pointer"
-            >
-              [ Re-initialize System Database ]
-            </button>
+              {landingActiveTab === "start" && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="space-y-3 max-w-xl text-xs text-slate-400"
+                >
+                  <div className="bg-slate-900/40 border border-slate-800/80 p-5 rounded-2xl space-y-3 font-sans leading-relaxed">
+                    <div className="flex items-start space-x-2">
+                      <div className="w-5 h-5 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800 flex items-center justify-center font-mono font-bold text-[10px] shrink-0 mt-0.5">1</div>
+                      <p><strong>Create or Enter a Group Code:</strong> Choose any word (e.g., <code className="bg-slate-950 px-1 py-0.5 rounded text-cyan-400 font-mono">covenantteam</code>) and share it with your partner.</p>
+                    </div>
+                    <div className="flex items-start space-x-2">
+                      <div className="w-5 h-5 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800 flex items-center justify-center font-mono font-bold text-[10px] shrink-0 mt-0.5">2</div>
+                      <p><strong>Choose Unique Character Nicknames:</strong> One can log in as <code className="bg-slate-950 px-1 py-0.5 rounded text-amber-400 font-mono">Arthur</code> and the other as <code className="bg-slate-950 px-1 py-0.5 rounded text-teal-400 font-mono">Gwen</code>.</p>
+                    </div>
+                    <div className="flex items-start space-x-2">
+                      <div className="w-5 h-5 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800 flex items-center justify-center font-mono font-bold text-[10px] shrink-0 mt-0.5">3</div>
+                      <p><strong>Auto Role Allocation:</strong> The database engine automatically maps you to <strong>Partner 1</strong> or <strong>Partner 2</strong> slots instantly. No configuration manual required!</p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
+
+          {/* RIGHT COLUMN: PORTAL OF INITIATION (LOGIN & SYNC CARD) */}
+          <div className="lg:col-span-5 flex justify-center w-full">
+            <div className="w-full max-w-md bg-slate-900/85 border border-slate-800/90 p-8 rounded-3xl shadow-2xl backdrop-blur-md flex flex-col space-y-6 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500" />
+              
+              <div className="text-center space-y-2">
+                <div className="mx-auto w-12 h-12 bg-cyan-950/50 border border-cyan-500/40 rounded-2xl flex items-center justify-center shadow-lg shadow-cyan-950/40">
+                  <Sparkles className="h-6 w-6 text-cyan-400 animate-pulse" />
+                </div>
+                <h2 className="text-xl font-black text-slate-100 uppercase tracking-widest font-sans bg-gradient-to-r from-cyan-400 to-blue-300 bg-clip-text text-transparent">
+                  PORTAL INITIATION
+                </h2>
+                <p className="text-xs text-slate-400 font-medium">
+                  Forge your relational sync line with the covenant database.
+                </p>
+              </div>
+
+              <form onSubmit={handleGroupLoginSubmit} className="space-y-4">
+                {/* Group Code Word */}
+                <div>
+                  <label className="block text-[10px] font-mono font-bold tracking-wider text-cyan-400 uppercase mb-1.5">
+                    Covenant Group Code (Shared)
+                  </label>
+                  <div className="relative">
+                    <Users className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
+                    <input
+                      type="text"
+                      placeholder="e.g. covenantteam"
+                      value={loginGroupName}
+                      onChange={(e) => setLoginGroupName(e.target.value)}
+                      className="w-full bg-slate-950/80 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-100 font-sans focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/30 font-medium"
+                      required
+                    />
+                  </div>
+                  <p className="text-[10px] text-slate-500 mt-1 font-sans">
+                    Entering the exact same Group Code joins both players into the exact same dashboard.
+                  </p>
+                </div>
+
+                {/* Partner Character Name */}
+                <div>
+                  <label className="block text-[10px] font-mono font-bold tracking-wider text-cyan-400 uppercase mb-1.5">
+                    Your Player Username inside Covenant
+                  </label>
+                  <div className="relative">
+                    <Key className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
+                    <input
+                      type="text"
+                      placeholder="e.g. Arthur, Gwen"
+                      value={loginPartnerName}
+                      onChange={(e) => setLoginPartnerName(e.target.value)}
+                      className="w-full bg-slate-950/80 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-100 font-sans focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/30 font-medium"
+                      required
+                    />
+                  </div>
+                  <p className="text-[10px] text-slate-500 mt-1 font-sans">
+                    No complex signup flows. Individual avatar roles sync up automatically.
+                  </p>
+                </div>
+
+                {/* Error alerts */}
+                {authError && (
+                  <div className="p-3 bg-red-950/30 border border-red-500/25 rounded-xl text-left">
+                    <span className="text-[9px] font-mono text-rose-400 font-bold uppercase tracking-wider block mb-1">⚠️ Connection Refused</span>
+                    <p className="text-xs text-rose-300 leading-normal">{authError}</p>
+                  </div>
+                )}
+
+                {/* Submit button */}
+                <button
+                  type="submit"
+                  disabled={loadingUnionAction === "login"}
+                  className="w-full py-3 bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 disabled:opacity-50 text-slate-100 font-bold text-sm rounded-xl flex items-center justify-center space-x-2 transition shadow-lg shadow-indigo-950/30 cursor-pointer"
+                >
+                  <Zap className="h-4 w-4" />
+                  <span>{loadingUnionAction === "login" ? "LINKING COVENANT..." : "INITIATE DUO QUEST LINK"}</span>
+                </button>
+              </form>
+
+              <div className="flex flex-col items-center space-y-2 pt-2 border-t border-slate-800/40">
+                <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">
+                  Duo Leveling Covenant System
+                </span>
+                <button
+                  type="button"
+                  onClick={handleReinitDatabase}
+                  className="text-[9px] font-mono text-slate-600 hover:text-cyan-400 font-bold uppercase tracking-wider transition underline decoration-slate-800 hover:decoration-cyan-500 cursor-pointer"
+                >
+                  [ Re-initialize System Database ]
+                </button>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     );
