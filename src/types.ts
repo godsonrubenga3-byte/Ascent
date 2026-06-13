@@ -56,6 +56,7 @@ export interface ScheduleItem {
   adjustedStartTime?: string;
   adjustedEndTime?: string;
   isAdjusted: boolean;
+  isDefault?: boolean;
   status: "pending" | "completed" | "missed";
   date: string; // YYYY-MM-DD
 }

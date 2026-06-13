@@ -26,6 +26,7 @@ import {
   updateDoc,
 } from "./lib/firebase";
 import { UserProfile, Couple, Skill, ScheduleItem, PrayingSession, DailyInspiration } from "./types";
+import { getUrl } from "./lib/api";
 import DuoStatus, { addExp } from "./components/DuoStatus";
 import SchedulePanel from "./components/SchedulePanel";
 import SkillsImport from "./components/SkillsImport";
@@ -86,7 +87,7 @@ export default function App() {
     setLoadingUnionAction("login");
     setAuthError(null);
     try {
-      const resp = await fetch("/api/db/reinit", { method: "POST" });
+      const resp = await fetch(getUrl("/api/db/reinit"), { method: "POST" });
       if (!resp.ok) {
         throw new Error("HTTP connection failed with status code " + resp.status);
       }
@@ -115,7 +116,7 @@ export default function App() {
     setLoadingUnionAction("login");
     setAuthError(null);
     try {
-      const response = await fetch("/api/groups/login", {
+      const response = await fetch(getUrl("/api/groups/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -244,7 +245,7 @@ export default function App() {
   const fetchInspiration = async () => {
     setLoadingInspiration(true);
     try {
-      const response = await fetch("/api/daily-inspiration");
+      const response = await fetch(getUrl("/api/daily-inspiration"));
       if (response.ok) {
         const data = await response.json();
         setDailyInspiration(data);
@@ -702,12 +703,12 @@ export default function App() {
 
   // --- RENDERING FULL ACTIVE HUD DASHBOARD ---
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans pb-12 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans pb-12 relative overflow-hidden safe-area-top safe-area-x">
       {/* Background patterns */}
-      <div className="absolute top-0 left-0 w-full h-[1.5px] bg-gradient-to-r from-cyan-500 via-indigo-500 to-purple-500" />
+      <div className="absolute top-0 left-0 w-full h-[1.5px] bg-gradient-to-r from-cyan-500 via-indigo-500 to-purple-500 mt-[var(--safe-top)]" />
       
       {/* Header HUD */}
-      <header className="border-b border-slate-900 bg-slate-950/85 backdrop-blur-md sticky top-0 z-30">
+      <header className="border-b border-slate-900 bg-slate-950/85 backdrop-blur-md sticky top-[var(--safe-top)] z-30">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-gradient-to-br from-cyan-600/20 to-indigo-600/20 border border-cyan-500/30 rounded-xl">

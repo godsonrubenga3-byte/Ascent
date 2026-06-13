@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { db, handleFirestoreError, OperationType, collection, doc, addDoc, updateDoc, deleteDoc, writeBatch } from "../lib/firebase";
 import { UserProfile, Couple, ScheduleItem } from "../types";
+import { getUrl } from "../lib/api";
 import { addExp } from "./DuoStatus";
-import { Calendar, Clock, Plus, CheckCircle, XCircle, Settings, Edit, Loader2, Sparkles, Check, ChevronRight, AlertTriangle } from "lucide-react";
+import { Calendar, Clock, Plus, CheckCircle, XCircle, Settings, Edit, Loader2, Sparkles, Check, ChevronRight, AlertTriangle, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 interface SchedulePanelProps {
@@ -43,6 +44,7 @@ export default function SchedulePanel({
   const [addCategory, setAddCategory] = useState<any>("routine");
   const [addStartTime, setAddStartTime] = useState("08:00");
   const [addEndTime, setAddEndTime] = useState("09:00");
+  const [isDefault, setIsDefault] = useState(false);
 
   // Form states for adjusting timings of a task
   const [adjustingItem, setAdjustingItem] = useState<ScheduleItem | null>(null);
@@ -77,6 +79,27 @@ export default function SchedulePanel({
     }
   };
 
+  const handleApplyDefaultRoutine = async () => {
+    setLoadingAction("load_template");
+    try {
+      const resp = await fetch(getUrl("/api/schedule/apply-default"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: userProfile.uid,
+          date: selectedDate
+        })
+      });
+      if (!resp.ok) throw new Error("Failed to apply routine");
+      const data = await resp.json();
+      alert(`Successfully imported ${data.appliedCount} recurring quests!`);
+    } catch (err) {
+      alert("Error applying default routine: " + String(err));
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!addTitle) return;
@@ -89,6 +112,7 @@ export default function SchedulePanel({
         startTime: addStartTime,
         endTime: addEndTime,
         isAdjusted: false,
+        isDefault: isDefault,
         status: "pending",
         date: selectedDate,
         updatedAt: new Date().toISOString(),
@@ -98,6 +122,7 @@ export default function SchedulePanel({
       setAddCategory("routine");
       setAddStartTime("08:00");
       setAddEndTime("09:00");
+      setIsDefault(false);
       setShowAddForm(false);
     } catch (err) {
       handleFirestoreError(err, OperationType.CREATE, `users/${userProfile.uid}/scheduleItems`);
@@ -316,6 +341,19 @@ export default function SchedulePanel({
                 </div>
               </div>
 
+              <div className="flex items-center space-x-2 pt-2">
+                <input
+                  type="checkbox"
+                  id="isDefault"
+                  checked={isDefault}
+                  onChange={(e) => setIsDefault(e.target.checked)}
+                  className="w-4 h-4 bg-slate-950 border-slate-800 rounded text-cyan-600 focus:ring-cyan-500"
+                />
+                <label htmlFor="isDefault" className="text-[11px] font-mono text-slate-400 uppercase">
+                  Recurring Routine (Add to Default)
+                </label>
+              </div>
+
               <div className="md:col-span-4 flex justify-end space-x-2 pt-2">
                 <button
                   type="button"
@@ -420,18 +458,28 @@ export default function SchedulePanel({
             </div>
 
             {activeTab === "mine" && (
-              <button
-                onClick={handleLoadTemplate}
-                disabled={loadingAction === "load_template"}
-                className="px-5 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs text-cyan-400 font-bold rounded-xl flex items-center space-x-2 transition cursor-pointer"
-              >
-                {loadingAction === "load_template" ? (
-                  <Loader2 className="h-4 w-4 animate-spin text-cyan-400" />
-                ) : (
-                  <Sparkles className="h-4 w-4 text-cyan-400" />
-                )}
-                <span>Populate Default Quest Timeline (+8 Nodes)</span>
-              </button>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={handleLoadTemplate}
+                  disabled={loadingAction === "load_template"}
+                  className="px-5 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs text-cyan-400 font-bold rounded-xl flex items-center space-x-2 transition cursor-pointer"
+                >
+                  {loadingAction === "load_template" ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-cyan-400" />
+                  ) : (
+                    <Sparkles className="h-4 w-4 text-cyan-400" />
+                  )}
+                  <span>Populate Default Quest Timeline (+8 Nodes)</span>
+                </button>
+                <button
+                  onClick={handleApplyDefaultRoutine}
+                  disabled={loadingAction === "load_template"}
+                  className="px-5 py-2 bg-indigo-950/40 hover:bg-indigo-900/40 border border-indigo-500/30 text-xs text-indigo-400 font-bold rounded-xl flex items-center space-x-2 transition cursor-pointer"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  <span>Import Recurring Routine</span>
+                </button>
+              </div>
             )}
           </div>
         ) : (

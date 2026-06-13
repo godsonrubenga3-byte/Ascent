@@ -5,7 +5,7 @@
   "description": "Solo leveling style partner scheduler and discipline system for couples.",
   "author": "Duo Leveling Team",
   "type": "module",
-  "main": "main.js",
+  "main": "main.cjs",
   "scripts": {
     "dev": "tsx app-server.ts",
     "build": "vite build && esbuild app-server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
@@ -24,15 +24,20 @@
       "output": "build-desktop"
     },
     "win": {
-      "target": ["nsis"]
+      "target": [
+        "nsis"
+      ]
     },
     "files": [
       "dist/**/*",
-      "main.js",
+      "main.cjs",
       "package.json"
     ]
   },
   "dependencies": {
+    "@capacitor/local-notifications": "^7.0.6",
+    "@capacitor/splash-screen": "^7.0.5",
+    "@capacitor/status-bar": "^7.0.6",
     "@libsql/client": "^0.17.3",
     "@tailwindcss/vite": "^4.1.14",
     "@vitejs/plugin-react": "^5.0.4",

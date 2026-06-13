@@ -39,9 +39,11 @@ export interface GroupState {
 // Example: "https://duo-leveling.vercel.app"
 const BASE_URL = "https://duo-ascent.vercel.app"; 
 
-function getUrl(path: string) {
+export function getUrl(path: string) {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const base = BASE_URL || origin;
+  // Check if we are running in Capacitor (localhost) or dev
+  const isCapacitor = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.protocol === "file:");
+  const base = isCapacitor ? BASE_URL : origin;
   return `${base}${path}`;
 }
 

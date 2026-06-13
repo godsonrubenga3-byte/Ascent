@@ -81,6 +81,8 @@ export async function initDB() {
         adjusted_start_time TEXT,
         adjusted_end_time TEXT,
         is_adjusted INTEGER DEFAULT 0,
+        is_default INTEGER DEFAULT 0, -- 1 if this is part of the recurring routine
+        days_of_week TEXT, -- e.g. "1,2,3,4,5" for weekdays
         status TEXT DEFAULT 'pending',
         date TEXT NOT NULL
       )
@@ -131,6 +133,7 @@ function sanitizeRow(row: any) {
   // Convert sqlite integer flags back to booleans
   if ('is_imported' in copy) copy.isImported = copy.is_imported === 1;
   if ('is_adjusted' in copy) copy.isAdjusted = copy.is_adjusted === 1;
+  if ('is_default' in copy) copy.isDefault = copy.is_default === 1;
   return copy;
 }
 
@@ -512,14 +515,48 @@ export async function deleteSkill(skillId: string) {
 }
 
 // Daily Schedule logic
-export async function addScheduleItem(userId: string, title: string, category: string, startTime: string, endTime: string, date: string) {
+export async function addScheduleItem(userId: string, title: string, category: string, startTime: string, endTime: string, date: string, isDefault: boolean = false) {
   const sId = generateId("SCH-");
   await dbClient.execute({
-    sql: `INSERT INTO schedule_items (id, user_id, title, category, start_time, end_time, is_adjusted, status, date) 
-          VALUES (?, ?, ?, ?, ?, ?, 0, 'pending', ?)`,
-    args: [sId, userId, title, category, startTime, endTime, date]
+    sql: `INSERT INTO schedule_items (id, user_id, title, category, start_time, end_time, is_adjusted, is_default, status, date) 
+          VALUES (?, ?, ?, ?, ?, ?, 0, ?, 'pending', ?)`,
+    args: [sId, userId, title, category, startTime, endTime, isDefault ? 1 : 0, date]
   });
   return sId;
+}
+
+export async function applyDefaultRoutine(userId: string, targetDate: string) {
+  try {
+    // 1. Fetch all default routine items for the user
+    const defaultsRes = await dbClient.execute({
+      sql: "SELECT * FROM schedule_items WHERE user_id = ? AND is_default = 1",
+      args: [userId]
+    });
+
+    if (defaultsRes.rows.length === 0) return 0;
+
+    // 2. Clone them for the target date
+    for (const item of defaultsRes.rows) {
+      const sId = generateId("SCH-");
+      await dbClient.execute({
+        sql: `INSERT INTO schedule_items (id, user_id, title, category, start_time, end_time, is_adjusted, is_default, status, date) 
+              VALUES (?, ?, ?, ?, ?, ?, 0, 0, 'pending', ?)`,
+        args: [
+          sId, 
+          userId, 
+          item.title as string, 
+          item.category as string, 
+          item.start_time as string, 
+          item.end_time as string, 
+          targetDate
+        ]
+      });
+    }
+    return defaultsRes.rows.length;
+  } catch (err) {
+    console.error("[Database] Failed to apply default routine:", err);
+    throw err;
+  }
 }
 
 export async function updateScheduleItem(itemId: string, status: string, isAdjusted: boolean, adjStart?: string, adjEnd?: string) {

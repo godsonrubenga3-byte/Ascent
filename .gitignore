@@ -7,3 +7,13 @@ coverage/
 .env*
 !.env.example
 .vercel
+/trial/
+
+# Build Artifacts
+build-desktop/
+android/
+ios/
+
+# Database
+local.db
+local.db-journal

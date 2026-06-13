@@ -13,6 +13,7 @@ import {
   addScheduleItem,
   updateScheduleItem,
   deleteScheduleItem,
+  applyDefaultRoutine,
   addPrayingSession,
   updatePrayingSession,
   deletePrayingSession,
@@ -190,12 +191,24 @@ app.delete("/api/skills/:id", async (req, res) => {
 // API: Add Schedule Item
 app.post("/api/schedule", async (req, res) => {
   try {
-    const { userId, title, category, startTime, endTime, date } = req.body;
+    const { userId, title, category, startTime, endTime, date, isDefault } = req.body;
     if (!userId || !title || !category || !startTime || !endTime || !date) {
       return res.status(400).json({ error: "Missing fields" });
     }
-    const id = await addScheduleItem(userId, title, category, startTime, endTime, date);
+    const id = await addScheduleItem(userId, title, category, startTime, endTime, date, !!isDefault);
     res.json({ id, success: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// API: Apply Default Routine to a Date
+app.post("/api/schedule/apply-default", async (req, res) => {
+  try {
+    const { userId, date } = req.body;
+    if (!userId || !date) return res.status(400).json({ error: "Missing fields" });
+    const count = await applyDefaultRoutine(userId, date);
+    res.json({ success: true, appliedCount: count });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
