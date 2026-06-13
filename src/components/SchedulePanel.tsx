@@ -51,9 +51,11 @@ export default function SchedulePanel({
   const [adjustedStart, setAdjustedStart] = useState("");
   const [adjustedEnd, setAdjustedEnd] = useState("");
 
-  const filteredItems = (activeTab === "mine" ? scheduleItems : partnerScheduleItems).filter(
-    (item) => item.date === selectedDate
-  );
+  const filteredItems = React.useMemo(() => {
+    return (activeTab === "mine" ? scheduleItems : partnerScheduleItems).filter(
+      (item) => item.date === selectedDate
+    );
+  }, [activeTab, scheduleItems, partnerScheduleItems, selectedDate]);
 
   // Pre-populate schedules if none exist today
   const handleLoadTemplate = async () => {

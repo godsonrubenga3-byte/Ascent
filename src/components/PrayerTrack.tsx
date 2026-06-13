@@ -36,8 +36,13 @@ export default function PrayerTrack({
   const [newPrayerType, setNewPrayerType] = useState<"solo" | "couple">("solo");
   const [newPrayerNotes, setNewPrayerNotes] = useState("");
 
-  const filteredMine = prayingSessions.filter((s) => s.date === selectedDate);
-  const filteredPartner = partnerPrayingSessions.filter((s) => s.date === selectedDate);
+  const filteredMine = React.useMemo(() => {
+    return prayingSessions.filter((s) => s.date === selectedDate);
+  }, [prayingSessions, selectedDate]);
+
+  const filteredPartner = React.useMemo(() => {
+    return partnerPrayingSessions.filter((s) => s.date === selectedDate);
+  }, [partnerPrayingSessions, selectedDate]);
 
   // Auto load slots if empty
   const handleLoadDefaultSlots = async () => {

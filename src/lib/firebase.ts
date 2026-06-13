@@ -48,6 +48,7 @@ interface Listener {
   path: string;
   isDoc: boolean;
   callback: (snap: any) => void;
+  lastDataHash?: string;
 }
 const activeListeners: Listener[] = [];
 
@@ -59,6 +60,7 @@ export function triggerSyncNotification() {
 
   for (const listener of activeListeners) {
     const p = listener.path;
+    let currentData: any = null;
 
     if (listener.isDoc) {
       // 1. User profiles (p matches "users/userId")
@@ -66,80 +68,59 @@ export function triggerSyncNotification() {
         const uId = p.split("/")[1];
         const isP1 = state.partner1 && state.partner1.uid === uId;
         const isP2 = state.partner2 && state.partner2.uid === uId;
-        const uProfile = isP1 ? state.partner1 : isP2 ? state.partner2 : null;
-
-        listener.callback({
-          exists: () => uProfile !== null,
-          data: () => uProfile,
-          id: uId,
-        });
+        currentData = isP1 ? state.partner1 : isP2 ? state.partner2 : null;
       }
       // 2. Group info (p matches "couples/coupleId")
       else if (p.startsWith("couples/")) {
         const cId = p.split("/")[1];
-        const matches = state.group && state.group.id === cId;
-        listener.callback({
-          exists: () => matches,
-          data: () => state.group,
-          id: cId,
-        });
+        if (state.group && state.group.id === cId) {
+          currentData = state.group;
+        }
       }
     } else {
       // 3. User subcollections
-      // matches "users/userId/skills"
-      if (p.endsWith("/skills")) {
-        const uId = p.split("/")[1];
-        const docs = state.skills
-          .filter((s: any) => s.user_id === uId)
-          .map((s: any) => ({
-            id: s.id,
-            data: () => s,
-            ...s,
-          }));
-        listener.callback({
-          docs,
-          empty: docs.length === 0,
-          forEach: (fn: any) => docs.forEach(fn),
-        });
-      }
-      // matches "users/userId/scheduleItems"
-      else if (p.endsWith("/scheduleItems")) {
-        const uId = p.split("/")[1];
-        const docs = state.scheduleItems
-          .filter((s: any) => s.user_id === uId)
-          .map((s: any) => ({
-            id: s.id,
-            data: () => s,
-            ...s,
-          }));
-        listener.callback({
-          docs,
-          empty: docs.length === 0,
-          forEach: (fn: any) => docs.forEach(fn),
-        });
-      }
-      // matches "users/userId/prayingSessions"
-      else if (p.endsWith("/prayingSessions")) {
-        const uId = p.split("/")[1];
-        const docs = state.prayingSessions
-          .filter((s: any) => s.user_id === uId)
-          .map((s: any) => ({
-            id: s.id,
-            data: () => s,
-            ...s,
-          }));
-        listener.callback({
-          docs,
-          empty: docs.length === 0,
-          forEach: (fn: any) => docs.forEach(fn),
-        });
+      const parts = p.split("/");
+      const uId = parts[1];
+      const collection = parts[2];
+
+      if (collection === "skills") {
+        currentData = state.skills.filter((s: any) => s.user_id === uId);
+      } else if (collection === "scheduleItems") {
+        currentData = state.scheduleItems.filter((s: any) => s.user_id === uId);
+      } else if (collection === "prayingSessions") {
+        currentData = state.prayingSessions.filter((s: any) => s.user_id === uId);
       }
     }
+
+    // Change Detection: Only trigger if data actually changed
+    const dataHash = JSON.stringify(currentData || {});
+    if (listener.lastDataHash === dataHash) continue;
+    listener.lastDataHash = dataHash;
+
+    if (listener.isDoc) {
+      listener.callback({
+        exists: () => currentData !== null,
+        data: () => currentData,
+        id: p.split("/").pop(),
+      });
+    } else {
+      const docs = (currentData || []).map((d: any) => ({
+        id: d.id,
+        data: () => d,
+        ...d,
+      }));
+      listener.callback({
+        docs,
+        empty: docs.length === 0,
+        forEach: (fn: any) => docs.forEach(fn),
+      });
+    }
   }
-};
+}
 
 // Global active sync routine
-let syncInterval: any = null;
+let syncTimeout: any = null;
+let isSyncingActive = false;
 
 // Example: "https://duo-ascent.vercel.app"
 const BASE_URL = "https://duo-ascent.vercel.app";
@@ -153,6 +134,7 @@ function getUrl(path: string) {
 }
 
 export async function pullDatabaseSync(groupId: string) {
+  if (!groupId) return;
   try {
     const res = await fetch(getUrl(`/api/groups/${groupId}/sync`));
     if (res.ok) {
@@ -164,16 +146,30 @@ export async function pullDatabaseSync(groupId: string) {
   }
 }
 
+async function scheduleNextSync(groupId: string) {
+  if (!isSyncingActive) return;
+  
+  // Skip sync if tab is hidden to save battery/CPU
+  if (typeof document !== "undefined" && document.hidden) {
+    syncTimeout = setTimeout(() => scheduleNextSync(groupId), 5000);
+    return;
+  }
+
+  await pullDatabaseSync(groupId);
+  syncTimeout = setTimeout(() => scheduleNextSync(groupId), 3500);
+}
+
 export function startDatabaseSyncLoop(groupId: string) {
-  if (syncInterval) clearInterval(syncInterval);
-  pullDatabaseSync(groupId);
-  syncInterval = setInterval(() => pullDatabaseSync(groupId), 2500);
+  if (isSyncingActive) stopDatabaseSyncLoop();
+  isSyncingActive = true;
+  scheduleNextSync(groupId);
 }
 
 export function stopDatabaseSyncLoop() {
-  if (syncInterval) {
-    clearInterval(syncInterval);
-    syncInterval = null;
+  isSyncingActive = false;
+  if (syncTimeout) {
+    clearTimeout(syncTimeout);
+    syncTimeout = null;
   }
 }
 

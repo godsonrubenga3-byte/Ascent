@@ -42,7 +42,9 @@ export default function SkillsImport({
   const [trainDuration, setTrainDuration] = useState("30");
   const [trainNotes, setTrainNotes] = useState("");
 
-  const activeSkillsList = activeTab === "mine" ? skills : partnerSkills;
+  const activeSkillsList = React.useMemo(() => {
+    return activeTab === "mine" ? skills : partnerSkills;
+  }, [activeTab, skills, partnerSkills]);
 
   const handleImportSkill = async (name: string, category: "income" | "workout" | "exploration" | "custom") => {
     setLoadingSkillId("importing");
