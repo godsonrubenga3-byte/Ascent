@@ -51,11 +51,32 @@ export default function DuoStatus({
     ? Math.min(100, Math.floor((couple.sharedExp / reqXpCouple) * 100))
     : 0;
 
-  const handleCopyInviteCode = () => {
+  const handleCopyInviteCode = async () => {
     if (couple?.inviteCode) {
-      navigator.clipboard.writeText(couple.inviteCode);
-      setCopiedCode(true);
-      setTimeout(() => setCopiedCode(false), 2000);
+      try {
+        // Primary method: modern Clipboard API
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(couple.inviteCode);
+        } else {
+          // Robust Fallback: textarea + document.execCommand
+          const textArea = document.createElement("textarea");
+          textArea.value = couple.inviteCode;
+          textArea.style.position = "fixed";
+          textArea.style.left = "-9999px";
+          textArea.style.top = "0";
+          textArea.style.opacity = "0";
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+          const successful = document.execCommand("copy");
+          document.body.removeChild(textArea);
+          if (!successful) throw new Error("Fallback copy failed");
+        }
+        setCopiedCode(true);
+        setTimeout(() => setCopiedCode(false), 2000);
+      } catch (err) {
+        console.error("Clipboard sync failure:", err);
+      }
     }
   };
 

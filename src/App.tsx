@@ -24,6 +24,7 @@ import {
   addDoc,
   onSnapshot,
   updateDoc,
+  pullDatabaseSync,
 } from "./lib/firebase";
 import { UserProfile, Couple, Skill, ScheduleItem, PrayingSession, DailyInspiration } from "./types";
 import { getUrl } from "./lib/api";
@@ -47,6 +48,53 @@ export default function App() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [couple, setCouple] = useState<Couple | null>(null);
   const [partnerProfile, setPartnerProfile] = useState<UserProfile | null>(null);
+
+  // Sync and Pull-to-Refresh states
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [pullProgress, setPullProgress] = useState(0);
+  const pullThreshold = 80;
+  const startY = React.useRef(0);
+  const isPulling = React.useRef(false);
+
+  const handleGlobalSync = async () => {
+    if (isSyncing || !currentUser?.groupId) return;
+    setIsSyncing(true);
+    try {
+      // Bypassing cache to ensure fresh data from relational DB
+      await pullDatabaseSync(currentUser.groupId);
+      await fetchInspiration();
+    } catch (err) {
+      console.error("Global Sync Error:", err);
+    } finally {
+      // Small timeout for visual confirmation of the sync animation
+      setTimeout(() => setIsSyncing(false), 1000);
+    }
+  };
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    if (window.scrollY === 0) {
+      startY.current = e.touches[0].pageY;
+      isPulling.current = true;
+    }
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (!isPulling.current) return;
+    const currentY = e.touches[0].pageY;
+    const diff = currentY - startY.current;
+    if (diff > 0) {
+      const progress = Math.min(100, (diff / 150) * 100);
+      setPullProgress(progress);
+    }
+  };
+
+  const onTouchEnd = () => {
+    if (pullProgress >= pullThreshold) {
+      handleGlobalSync();
+    }
+    setPullProgress(0);
+    isPulling.current = false;
+  };
 
   // User list resources
   const [mySkills, setMySkills] = useState<Skill[]>([]);
@@ -703,7 +751,33 @@ export default function App() {
 
   // --- RENDERING FULL ACTIVE HUD DASHBOARD ---
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans pb-12 relative overflow-hidden safe-area-top safe-area-x">
+    <div 
+      className="min-h-screen bg-slate-950 text-slate-100 font-sans pb-12 relative overflow-hidden safe-area-top safe-area-x"
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    >
+      {/* Global Sync Pull-down Indicator */}
+      <AnimatePresence>
+        {(pullProgress > 0 || isSyncing) && (
+          <motion.div 
+            initial={{ y: -50, opacity: 0 }}
+            animate={{ y: isSyncing ? 20 : Math.min(20, pullProgress / 2), opacity: 1 }}
+            exit={{ y: -50, opacity: 0 }}
+            className="fixed top-0 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none"
+          >
+            <div className={`p-2 rounded-full bg-slate-900 border ${pullProgress >= pullThreshold || isSyncing ? 'border-cyan-500 shadow-lg shadow-cyan-500/20' : 'border-slate-800'} transition-all`}>
+              <RefreshCw className={`h-5 w-5 ${isSyncing ? 'animate-spin text-cyan-400' : 'text-slate-400'}`} style={{ transform: `rotate(${pullProgress * 3.6}deg)` }} />
+            </div>
+            {!isSyncing && pullProgress > 20 && (
+              <span className="text-[10px] font-mono font-bold text-cyan-400 mt-1 uppercase tracking-widest bg-slate-950/80 px-2 py-0.5 rounded-full border border-cyan-500/20">
+                {pullProgress >= pullThreshold ? 'Release to Sync' : 'Pull to Sync'}
+              </span>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Background patterns */}
       <div className="absolute top-0 left-0 w-full h-[1.5px] bg-gradient-to-r from-cyan-500 via-indigo-500 to-purple-500 mt-[var(--safe-top)]" />
       
@@ -733,6 +807,14 @@ export default function App() {
             <span className="hidden sm:inline-block text-[10px] font-mono text-slate-500 uppercase select-none">
               Hero: {currentUser.email}
             </span>
+            <button
+              onClick={handleGlobalSync}
+              disabled={isSyncing}
+              className="p-1.5 border border-slate-800 hover:border-cyan-500/30 hover:bg-cyan-950/10 text-slate-300 hover:text-cyan-400 rounded-xl transition cursor-pointer disabled:opacity-50"
+              title="Global System Sync"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+            </button>
             <button
               onClick={handleSignOut}
               className="px-3.5 py-1.5 border border-slate-800 hover:border-red-500/30 hover:bg-red-950/10 text-xs text-slate-300 hover:text-red-400 rounded-xl font-mono flex items-center space-x-1.5 transition cursor-pointer"
